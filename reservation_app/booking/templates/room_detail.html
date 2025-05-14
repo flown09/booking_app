@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ room.name }}{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    {% if room.images.all %}
+        <div class="flex overflow-x-auto space-x-4">
+            {% for img in room.images.all %}
+                <img src="{{ img.image.url }}" class="h-64 rounded shadow" alt="Фото комнаты">
+            {% endfor %}
+        </div>
+    {% else %}
+        <p>Фотографии пока не загружены.</p>
+    {% endif %}
+</div>
+
+<h1 class="text-3xl font-bold mb-2">{{ room.name }}</h1>
+<p class="text-gray-600 mb-1">Отель:
+    <a href="{% url 'hotel_detail' room.hotel.pk %}" class="text-blue-500 hover:underline">
+        {{ room.hotel.name }}
+    </a>
+</p>
+<p class="mt-4">{{ room.description }}</p>
+<p class="mt-2 font-medium">Цена за ночь: {{ room.price_per_night }} ₽</p>
+
+
+<hr class="my-6">
+
+<h2 class="text-2xl font-semibold mb-4">Забронировать номер</h2>
+
+<form method="post" class="space-y-4">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+
+    <div>
+        <label for="id_check_in" class="block font-medium">Дата заезда:</label>
+        {{ form.check_in }}
+    </div>
+
+    <div>
+        <label for="id_check_out" class="block font-medium">Дата выезда:</label>
+        {{ form.check_out }}
+    </div>
+
+    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+        Забронировать
+    </button>
+</form>
+<!--<div class="bg-white shadow rounded-lg p-6">-->
+<!--    {% if resource.image %}-->
+<!--    <img src="{{ resource.image.url }}" alt="{{ resource.name }}" class="w-full h-96 object-cover mb-4">-->
+<!--    {% endif %}-->
+<!--    <h1 class="text-3xl font-bold mb-2">{{ resource.name }}</h1>-->
+<!--    <p class="text-gray-600">{{ resource.category.name }}</p>-->
+<!--    <p class="mt-4 text-lg">{{ resource.description }}</p>-->
+<!--    <p class="mt-2 font-medium">Вместимость: {{ resource.capacity }} человек</p>-->
+<!--</div>-->
+{% endblock %}

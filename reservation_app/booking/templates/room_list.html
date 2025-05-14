@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Главная{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Доступные номера</h1>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    {% for room in rooms %}
+    <a href="{% url 'room_detail' room.pk %}" class="block bg-white rounded shadow hover:shadow-lg">
+        {% if room.images.first %}
+            <img src="{{ room.images.first.image.url }}" class="w-full h-48 object-cover" alt="{{ room.name }}">
+        {% else %}
+            <div class="w-full h-48 bg-gray-300 flex items-center justify-center">Нет фото</div>
+        {% endif %}
+        <div class="p-4">
+            <h2 class="text-xl font-bold">{{ room.name }}</h2>
+            <p class="text-gray-600">Отель: {{ room.hotel.name }}</p>
+            <p class="text-sm text-gray-500 mt-1">{{ room.description|truncatechars:80 }}</p>
+        </div>
+    </a>
+    {% endfor %}
+
+<!--    {% for room in rooms %}-->
+<!--    <a href="{% url 'room_detail' room.pk %}" class="bg-white shadow rounded-lg overflow-hidden hover:shadow-xl transition">-->
+<!--        {% if room.image %}-->
+<!--        <img src="{{ room.image.url }}" alt="{{ room.name }}" class="w-full h-48 object-cover">-->
+<!--        {% endif %}-->
+<!--        <div class="p-4">-->
+<!--            <h2 class="text-xl font-semibold">{{ room.name }}</h2>-->
+<!--            <p class="text-gray-600">{{ room.hotel.name }}</p>-->
+<!--            <p class="text-sm text-gray-500 mt-2">{{ room.description|truncatechars:100 }}</p>-->
+<!--        </div>-->
+<!--    </a>-->
+<!--    {% endfor %}-->
+</div>
+{% endblock %}

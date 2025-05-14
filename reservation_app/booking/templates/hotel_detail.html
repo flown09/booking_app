@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ hotel.name }}{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold">{{ hotel.name }}</h1>
+<p class="text-gray-700 mb-4">{{ hotel.city }}, {{ hotel.address }}</p>
+{% if hotel.image %}
+    <img src="{{ hotel.image.url }}" class="w-full h-64 object-cover mb-4">
+{% endif %}
+<p class="mb-6">{{ hotel.description }}</p>
+
+<h2 class="text-2xl font-semibold mb-3">Номера в отеле:</h2>
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    {% for room in hotel.rooms.all %}
+        <a href="{% url 'room_detail' room.pk %}" class="block bg-white rounded shadow p-4 hover:shadow-lg">
+            <h3 class="text-lg font-bold">{{ room.name }}</h3>
+            <p class="text-gray-600">{{ room.capacity }} человек</p>
+        </a>
+    {% endfor %}
+</div>
+{% endblock %}
