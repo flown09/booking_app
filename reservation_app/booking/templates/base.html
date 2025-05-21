@@ -16,7 +16,7 @@
                 {% if user.is_authenticated %}
                     <a href="{% url 'my_bookings' %}" class="hover:underline">Мои бронирования |</a>
                     {{ user.username }} |
-                    <a href="{% url 'logout' %}" class="underline">Выйти</a>
+                    <a href="{% url 'logout' %}" class="hover:underline">Выйти</a>
                 {% else %}
                     <a href="{% url 'login' %}" class="underline">Войти</a> /
                     <a href="{% url 'register' %}" class="underline">Регистрация</a>

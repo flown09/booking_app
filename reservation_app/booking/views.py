@@ -4,6 +4,7 @@ from .forms import BookingForm, RegisterForm, LoginForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from .models import Room, Hotel, Booking
+from datetime import datetime
 
 @login_required
 def my_bookings(request):
@@ -52,7 +53,19 @@ def logout_view(request):
     return redirect('login')
 
 def room_list(request):
-    rooms = Room.objects.filter(is_available=True)
+    check_in = request.GET.get('check_in')
+    check_out = request.GET.get('check_out')
+
+    all_rooms = Room.objects.filter(is_available=True)
+    rooms = []
+
+    if check_in and check_out:
+        check_in_date = datetime.strptime(check_in, '%d-%m-%Y').date()
+        check_out_date = datetime.strptime(check_out, '%d-%m-%Y').date()
+
+        for room in all_rooms:
+            if room.is_available_for_dates(check_in_date, check_out_date):
+                rooms.append(room)
     return render(request, 'room_list.html', {'rooms': rooms})
 
 def room_detail(request, pk):
