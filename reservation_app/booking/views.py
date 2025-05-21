@@ -1,8 +1,14 @@
+from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import BookingForm, RegisterForm, LoginForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
-from .models import Room, Hotel
+from .models import Room, Hotel, Booking
+
+@login_required
+def my_bookings(request):
+    bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
+    return render(request, 'my_bookings.html', {'bookings': bookings})
 
 def register_view(request):
     if request.user.is_authenticated:

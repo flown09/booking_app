@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block title %}Мои бронирования{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Мои бронирования</h1>
+
+{% if bookings %}
+    <div class="space-y-6">
+        {% for booking in bookings %}
+            <div class="bg-white shadow p-4 rounded-lg">
+                <h2 class="text-xl font-semibold">{{ booking.room.name }}</h2>
+                <p class="text-gray-600">Отель: {{ booking.room.hotel.name }}</p>
+                <p class="text-gray-500">С {{ booking.check_in }} по {{ booking.check_out }}</p>
+                <p class="text-sm text-gray-400">Статус: {{ booking.get_status_display }}</p>
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>У вас пока нет бронирований.</p>
+{% endif %}
+{% endblock %}
