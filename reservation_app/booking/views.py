@@ -1,10 +1,25 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import BookingForm, RegisterForm, LoginForm
+from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from .models import Room, Hotel, Booking
 from datetime import datetime
+
+@login_required
+def profile_view(request):
+    profile = request.user
+    if request.method == 'POST':
+        form = CustomUserRegistrationForm(request.POST, request.FILES, instance=profile)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = CustomUserRegistrationForm(instance=profile)
+    return render(request, 'profile.html', {'form': form})
+
+def home(request):
+    return render(request, 'home.html')
 
 @login_required
 def my_bookings(request):
@@ -12,18 +27,14 @@ def my_bookings(request):
     return render(request, 'my_bookings.html', {'bookings': bookings})
 
 def register_view(request):
-    if request.user.is_authenticated:
-        return redirect('room_list')
-
     if request.method == 'POST':
-        form = RegisterForm(request.POST)
+        form = CustomUserRegistrationForm(request.POST)
         if form.is_valid():
             user = form.save()
             login(request, user)
-            messages.success(request, 'Регистрация прошла успешно!')
             return redirect('room_list')
     else:
-        form = RegisterForm()
+        form = CustomUserRegistrationForm()
 
     return render(request, 'auth/register.html', {'form': form})
 
@@ -52,6 +63,10 @@ def logout_view(request):
     messages.info(request, 'Вы вышли из аккаунта.')
     return redirect('login')
 
+def hotel_list(request):
+    hotels = Hotel.objects.all()
+    return render(request, 'hotel_list.html', {'hotels': hotels})
+
 def room_list(request):
     check_in = request.GET.get('check_in')
     check_out = request.GET.get('check_out')
@@ -60,13 +75,25 @@ def room_list(request):
     rooms = []
 
     if check_in and check_out:
-        check_in_date = datetime.strptime(check_in, '%d-%m-%Y').date()
-        check_out_date = datetime.strptime(check_out, '%d-%m-%Y').date()
+        try:
+            check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
+            check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
 
-        for room in all_rooms:
-            if room.is_available_for_dates(check_in_date, check_out_date):
-                rooms.append(room)
-    return render(request, 'room_list.html', {'rooms': rooms})
+            for room in all_rooms:
+                if room.is_available_for_dates(check_in_date, check_out_date):
+                    rooms.append(room)
+        except ValueError:
+            # Неверный формат даты — можно обработать или проигнорировать
+            pass
+    else:
+        # Если даты не указаны, показываем все доступные
+        rooms = list(all_rooms)
+
+    return render(request, 'room_list.html', {
+        'rooms': rooms,
+        'check_in': check_in,
+        'check_out': check_out,
+    })
 
 def room_detail(request, pk):
     room = get_object_or_404(Room, pk=pk)

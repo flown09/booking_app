@@ -3,6 +3,15 @@ from .models import Booking
 from django.forms import DateInput
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
+from .models import CustomUser
+
+class CustomUserRegistrationForm(UserCreationForm):
+    email = forms.EmailField(required=True)
+    phone_number = forms.CharField(required=False)
+
+    class Meta:
+        model = CustomUser
+        fields = ('username', 'email', 'phone_number', 'password1', 'password2')
 
 class BookingForm(forms.ModelForm):
     class Meta:

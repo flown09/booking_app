@@ -1,5 +1,13 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
+
+
+class CustomUser(AbstractUser):
+    email = models.EmailField(unique=True)
+    phone_number = models.CharField(max_length=20, blank=True, null=True)
+
+    def __str__(self):
+        return self.username
 
 class Hotel(models.Model):
     name = models.CharField(max_length=200)
@@ -38,11 +46,20 @@ class RoomImage(models.Model):
 
 
 class Booking(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     room = models.ForeignKey(Room, on_delete=models.CASCADE)
     check_in = models.DateField()
     check_out = models.DateField()
     created_at = models.DateTimeField(auto_now_add=True)
+    status = models.CharField(
+        max_length=20,
+        choices=[
+            ('pending', 'В ожидании'),
+            ('confirmed', 'Подтверждено'),
+            ('cancelled', 'Отменено')
+        ],
+        default='pending'
+    )
 
     def __str__(self):
         return f"Бронь: {self.user.username} – {self.room.name} ({self.check_in} → {self.check_out})"

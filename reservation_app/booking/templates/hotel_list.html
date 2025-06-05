@@ -1,0 +1,16 @@
+{% extends 'base.html' %}
+
+{% block title %}Отели{% endblock %}
+
+{% block content %}
+<h1 class="text-3xl font-bold mb-6">Отели</h1>
+<ul class="space-y-4">
+    {% for hotel in hotels %}
+    <li class="border p-4 rounded shadow">
+        <h2 class="text-xl font-semibold">{{ hotel.name }}</h2>
+        <p>{{ hotel.city }}, {{ hotel.address }}</p>
+        <p class="text-sm text-gray-600 mt-1">{{ hotel.description|truncatechars:100 }}</p>
+    </li>
+    {% endfor %}
+</ul>
+{% endblock %}
