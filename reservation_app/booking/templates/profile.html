@@ -1,18 +1,27 @@
 {% extends 'base.html' %}
+
 {% block title %}Профиль{% endblock %}
 
 {% block content %}
-<h2 class="text-2xl font-bold mb-4">Профиль пользователя</h2>
+<div class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
+    <h1 class="text-3xl font-bold mb-4">Профиль пользователя</h1>
 
-<form method="post" enctype="multipart/form-data" class="space-y-4">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="bg-blue-500 text-white px-4 py-2 rounded">Сохранить</button>
-</form>
+    <p class="mb-2"><strong>Логин:</strong> {{ user.username }}</p>
+    <p class="mb-2"><strong>Email:</strong> {{ user.email }}</p>
 
-{% if user.userprofile.avatar %}
-    <div class="mt-4">
-        <img src="{{ user.userprofile.avatar.url }}" alt="Аватар" class="w-32 h-32 object-cover rounded-full">
-    </div>
-{% endif %}
+    {% if confirmation and confirmation.confirmed %}
+        <p class="text-green-600 font-semibold">Почта подтверждена ✅</p>
+    {% else %}
+        <form action="{% url 'send_confirmation_code' %}" method="post" class="mb-4">
+            {% csrf_token %}
+            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded" type="submit">Отправить код подтверждения</button>
+        </form>
+
+        <form action="{% url 'verify_confirmation_code' %}" method="post" class="flex gap-3">
+            {% csrf_token %}
+            <input type="text" name="code" placeholder="Введите код" class="border p-2 rounded w-48">
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Подтвердить</button>
+        </form>
+    {% endif %}
+</div>
 {% endblock %}

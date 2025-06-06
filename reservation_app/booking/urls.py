@@ -1,5 +1,6 @@
 from django.urls import path
-from .views import room_list, room_detail, hotel_detail, register_view, login_view, logout_view, my_bookings, hotel_list, profile_view
+from .views import (room_list, room_detail, hotel_detail, register_view, login_view, logout_view, my_bookings,
+                    hotel_list, profile_view, send_confirmation_code, verify_confirmation_code)
 
 urlpatterns = [
     path('hotels/', hotel_list, name='hotel_list'),
@@ -11,4 +12,6 @@ urlpatterns = [
     path('logout/', logout_view, name='logout'),
     path('my-bookings/', my_bookings, name='my_bookings'),
     path('profile/', profile_view, name='profile'),
+    path('send-confirmation-code/', send_confirmation_code, name='send_confirmation_code'),
+    path('verify-code/', verify_confirmation_code, name='verify_confirmation_code'),
 ]

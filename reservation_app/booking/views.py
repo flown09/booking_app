@@ -1,22 +1,55 @@
+from django.conf import settings
 from django.contrib.auth.decorators import login_required
+from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404, redirect
 from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
-from .models import Room, Hotel, Booking
+from .models import Room, Hotel, Booking, EmailConfirmation
 from datetime import datetime, timedelta, date
+import random
 
 @login_required
 def profile_view(request):
-    profile = request.user
-    if request.method == 'POST':
-        form = CustomUserRegistrationForm(request.POST, request.FILES, instance=profile)
-        if form.is_valid():
-            form.save()
-            return redirect('profile')
-    else:
-        form = CustomUserRegistrationForm(instance=profile)
-    return render(request, 'profile.html', {'form': form})
+    confirmation = EmailConfirmation.objects.filter(user=request.user).first()
+    return render(request, 'profile.html', {'confirmation': confirmation})
+
+@login_required
+def send_confirmation_code(request):
+    code = str(random.randint(100000, 999999))
+    EmailConfirmation.objects.update_or_create(
+        user=request.user,
+        defaults={'code': code, 'confirmed': False}
+    )
+    send_mail(
+        'Код подтверждения почты',
+        f'Ваш код подтверждения: {code}',
+        settings.DEFAULT_FROM_EMAIL,
+        [request.user.email],
+        fail_silently=False
+    )
+    return redirect('profile')
+
+@login_required
+def verify_confirmation_code(request):
+    input_code = request.POST.get('code')
+    confirmation = EmailConfirmation.objects.filter(user=request.user).first()
+    if confirmation and confirmation.code == input_code:
+        confirmation.confirmed = True
+        confirmation.save()
+    return redirect('profile')
+
+# @login_required
+# def profile_view(request):
+#     profile = request.user
+#     if request.method == 'POST':
+#         form = CustomUserRegistrationForm(request.POST, request.FILES, instance=profile)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('profile')
+#     else:
+#         form = CustomUserRegistrationForm(instance=profile)
+#     return render(request, 'profile.html', {'form': form})
 
 def home(request):
     return render(request, 'home.html')
@@ -32,6 +65,21 @@ def register_view(request):
         if form.is_valid():
             user = form.save()
             login(request, user)
+
+            code = random.randint(100000, 999999)
+            EmailConfirmation.objects.update_or_create(
+                user=user,
+                defaults={'code': code, 'confirmed': False}
+            )
+
+            # отправляем email
+            send_mail(
+                'Подтверждение почты',
+                f'Ваш код подтверждения: {code}',
+                settings.DEFAULT_FROM_EMAIL,
+                [user.email],
+                fail_silently=False,
+            )
             return redirect('room_list')
     else:
         form = CustomUserRegistrationForm()

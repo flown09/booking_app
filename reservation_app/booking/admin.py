@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Hotel, Room, Booking, RoomImage, CustomUser, HotelImage
+from .models import Hotel, Room, Booking, RoomImage, CustomUser, HotelImage, EmailConfirmation
 
 class RoomImageInline(admin.TabularInline):
     model = RoomImage
@@ -12,6 +12,11 @@ class HotelImageInline(admin.TabularInline):
 # admin.site.register(Hotel)
 # admin.site.register(Room, RoomAdmin)
 # admin.site.register(Booking)
+
+@admin.register(EmailConfirmation)
+class EmailConfirmationAdmin(admin.ModelAdmin):
+    list_display = ('user', 'confirmed')
+
 
 admin.site.register(RoomImage)
 admin.site.register(HotelImage)
