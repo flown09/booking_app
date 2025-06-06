@@ -3,48 +3,105 @@
 {% block title %}{{ room.name }}{% endblock %}
 
 {% block content %}
-<div class="mb-4">
+<div class="max-w-6xl mx-auto bg-white rounded-xl shadow-md p-6 mt-4">
     {% if room.images.all %}
-        <div class="flex overflow-x-auto space-x-4">
-            {% for img in room.images.all %}
-                <img src="{{ img.image.url }}" class="h-64 rounded shadow" alt="Фото комнаты">
-            {% endfor %}
+    <!-- Галерея -->
+    <div class="relative group mb-6">
+        <div id="slider" class="overflow-hidden rounded-lg shadow-md relative">
+            <div id="slide-track" class="flex transition-transform duration-500">
+                {% for img in room.images.all %}
+                <img src="{{ img.image.url }}" alt="Фото {{ room.name }}"
+                     class="w-full flex-shrink-0 object-contain h-[36rem] rounded-lg bg-blue-50">
+                {% endfor %}
+            </div>
         </div>
+
+        <!-- Стрелки -->
+        <button onclick="prevSlide()" class="hidden group-hover:flex absolute top-1/2 left-2 -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 text-gray-800 p-2 rounded-full shadow">
+            ‹
+        </button>
+        <button onclick="nextSlide()" class="hidden group-hover:flex absolute top-1/2 right-2 -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 text-gray-800 p-2 rounded-full shadow">
+            ›
+        </button>
+    </div>
     {% else %}
-        <p>Фотографии пока не загружены.</p>
+        <p class="text-gray-500 mb-6">Фотографии пока не загружены.</p>
     {% endif %}
+
+    <!-- Информация о номере -->
+    <h1 class="text-3xl font-bold mb-2">{{ room.name }}</h1>
+    <p class="text-gray-600 mb-1">Отель:
+        <a href="{% url 'hotel_detail' room.hotel.pk %}" class="text-blue-600 hover:underline">
+            {{ room.hotel.name }}
+        </a>
+    </p>
+    <p class="text-sm text-gray-500">Вместимость: {{ room.capacity }} чел.</p>
+
+    <p class="mt-4 text-gray-800">{{ room.description }}</p>
+
+    <!-- Дополнительные характеристики -->
+    <div class="mt-6">
+        <h2 class="text-xl font-semibold mb-3">Удобства</h2>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-gray-700">
+            <p><strong>Питание:</strong> {{ room.nutrition|yesno:"Включено,Не предоставляется" }}</p>
+            <p><strong>Спальня:</strong> {{ room.bedroom }}</p>
+            <p><strong>Ванная:</strong> {{ room.bathroom }}</p>
+            <p><strong>Интернет:</strong> {{ room.internet|yesno:"Есть,Нет" }}</p>
+            <p><strong>Электроника:</strong> {{ room.electronics }}</p>
+            <p><strong>Площадь:</strong> {{ room.square }} м²</p>
+        </div>
+    </div>
 </div>
 
-<h1 class="text-3xl font-bold mb-2">{{ room.name }}</h1>
-<p class="text-gray-600 mb-1">Отель:
-    <a href="{% url 'hotel_detail' room.hotel.pk %}" class="text-blue-500 hover:underline">
-        {{ room.hotel.name }}
-    </a>
-</p>
-<p class="mt-4">{{ room.description }}</p>
+{% if check_in and check_out %}
+<div class="max-w-6xl mx-auto bg-white rounded-xl shadow-md p-6 mt-4">
+    <!-- Форма бронирования -->
+    <h2 class="text-2xl font-semibold mb-4">Забронировать номер</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
 
 
-<hr class="my-6">
+        <p class="text-blue-700 font-medium mt-2">
+            Бронирование с <strong>{{ check_in }}</strong> по <strong>{{ check_out }}</strong>
+        </p>
 
-<h2 class="text-2xl font-semibold mb-4">Забронировать номер</h2>
 
-<form method="post" class="space-y-4">
-    {% csrf_token %}
-    {{ form.non_field_errors }}
+        <input type="hidden" name="check_in" value="{{ check_in }}">
+        <input type="hidden" name="check_out" value="{{ check_out }}">
 
-    <div>
-        <label for="id_check_in" class="block font-medium">Дата заезда:</label>
-        {{ form.check_in }}
-    </div>
+        <button type="submit"
+                class="px-6 py-2 bg-blue-700 text-white rounded hover:bg-blue-800 font-semibold">
+            Забронировать
+        </button>
+    </form>
+</div>
+{% endif %}
+<!-- Слайдер JS -->
+<script>
+    let currentSlide = 0;
+    const slideTrack = document.getElementById("slide-track");
+    const slides = document.querySelectorAll("#slide-track img");
 
-    <div>
-        <label for="id_check_out" class="block font-medium">Дата выезда:</label>
-        {{ form.check_out }}
-    </div>
+    function updateSlide() {
+        const width = slides[0].clientWidth;
+        slideTrack.style.transform = `translateX(-${currentSlide * width}px)`;
+    }
 
-    <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-        Забронировать
-    </button>
-</form>
+    function nextSlide() {
+        if (currentSlide < slides.length - 1) {
+            currentSlide++;
+            updateSlide();
+        }
+    }
 
+    function prevSlide() {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateSlide();
+        }
+    }
+
+    window.addEventListener("resize", updateSlide);
+</script>
 {% endblock %}

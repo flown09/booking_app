@@ -17,8 +17,8 @@ admin.site.register(RoomImage)
 admin.site.register(HotelImage)
 @admin.register(Hotel)
 class HotelAdmin(admin.ModelAdmin):
-    list_display = ('name', 'city')
-    search_fields = ('name', 'city')
+    list_display = ('name', 'city', 'rating')
+    search_fields = ('name', 'city', 'rating')
     inlines = [HotelImageInline]
 
 @admin.register(Room)

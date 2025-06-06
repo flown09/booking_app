@@ -4,7 +4,7 @@ from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationF
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from .models import Room, Hotel, Booking
-from datetime import datetime
+from datetime import datetime, timedelta, date
 
 @login_required
 def profile_view(request):
@@ -74,40 +74,41 @@ def room_list(request):
     hotel_name = request.GET.get('hotel')
     guests = request.GET.get('guests')
 
+    today = date.today()
+    tomorrow = today + timedelta(days=1)
+
+    check_in = request.GET.get("check_in", today.strftime('%Y-%m-%d'))
+    check_out = request.GET.get("check_out", tomorrow.strftime('%Y-%m-%d'))
+
     rooms = Room.objects.filter(is_available=True)
 
-    # Фильтрация по городу (через связь с Hotel)
     if city:
         rooms = rooms.filter(hotel__city__icontains=city)
 
-    # Фильтрация по названию отеля
     if hotel_name:
         rooms = rooms.filter(hotel__name__icontains=hotel_name)
 
-    # Фильтрация по вместимости
     if guests:
         try:
             guests_int = int(guests)
             rooms = rooms.filter(capacity__gte=guests_int)
         except ValueError:
-            pass  # игнорируем некорректный ввод
+            pass
 
-    # Фильтрация по датам (проверка на пересекающиеся бронирования)
     if check_in and check_out:
         try:
             check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
             check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
 
-            # Исключаем комнаты с пересекающимися бронями
             rooms = rooms.exclude(
                 booking__check_in__lt=check_out_date,
                 booking__check_out__gt=check_in_date
             ).distinct()
 
         except ValueError:
-            pass  # некорректная дата — пропускаем фильтрацию
+            pass
 
-    return render(request, 'room_list_zapas.html', {
+    return render(request, 'room_list.html', {
         'rooms': rooms,
         'check_in': check_in,
         'check_out': check_out,
@@ -116,37 +117,23 @@ def room_list(request):
         'guests': guests,
     })
 
-# def room_list(request):
-#     check_in = request.GET.get('check_in')
-#     check_out = request.GET.get('check_out')
-#
-#     all_rooms = Room.objects.filter(is_available=True)
-#     rooms = []
-#
-#     if check_in and check_out:
-#         try:
-#             check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
-#             check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
-#
-#             for room in all_rooms:
-#                 if room.is_available_for_dates(check_in_date, check_out_date):
-#                     rooms.append(room)
-#         except ValueError:
-#             # Неверный формат даты — можно обработать или проигнорировать
-#             pass
-#     else:
-#         rooms = list(all_rooms)
-#
-#     return render(request, 'room_list_zapas.html', {
-#         'rooms': rooms,
-#         'check_in': check_in,
-#         'check_out': check_out,
-#     })
 
 def room_detail(request, pk):
     room = get_object_or_404(Room, pk=pk)
-    form = BookingForm()
+    check_in = request.GET.get('check_in')
+    check_out = request.GET.get('check_out')
 
+    check_in_display = None
+    check_out_display = None
+    try:
+        if check_in:
+            check_in_display = datetime.strptime(check_in, "%Y-%m-%d").strftime("%d %B %Y")
+        if check_out:
+            check_out_display = datetime.strptime(check_out, "%Y-%m-%d").strftime("%d %B %Y")
+    except ValueError:
+        pass
+    check_in = check_in_display
+    check_out = check_out_display
     if request.method == 'POST':
         if request.user.is_authenticated:
             form = BookingForm(request.POST)
@@ -161,10 +148,17 @@ def room_detail(request, pk):
         else:
             messages.warning(request, 'Необходимо войти в аккаунт для бронирования.')
             return redirect('login')
+    else:
+        form = BookingForm(initial={
+            'check_in': check_in,
+            'check_out': check_out,
+        })
 
     return render(request, 'room_detail.html', {
         'room': room,
         'form': form,
+        'check_in': check_in,
+        'check_out': check_out,
     })
 
 def hotel_detail(request, pk):

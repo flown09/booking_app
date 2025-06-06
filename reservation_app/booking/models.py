@@ -14,6 +14,7 @@ class Hotel(models.Model):
     address = models.TextField()
     city = models.CharField(max_length=100)
     description = models.TextField(blank=True)
+    rating = models.PositiveIntegerField()
 
     def __str__(self):
         return self.name
@@ -24,6 +25,12 @@ class Room(models.Model):
     description = models.TextField()
     capacity = models.PositiveIntegerField()
     is_available = models.BooleanField(default=True)
+    nutrition = models.BooleanField(default=False)
+    bedroom = models.TextField(default='Односпальная кровать')
+    bathroom = models.TextField(default='Ванная комната')
+    internet = models.BooleanField(default=True)
+    electronics = models.TextField(default='Холодильник, телевизор')
+    square = models.PositiveIntegerField()
 
     def __str__(self):
         return f"{self.name} – {self.hotel.name}"
