@@ -14,7 +14,6 @@ class Hotel(models.Model):
     address = models.TextField()
     city = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='hotels/', blank=True, null=True)
 
     def __str__(self):
         return self.name
@@ -44,6 +43,12 @@ class RoomImage(models.Model):
     def __str__(self):
         return f"Фото для {self.room.name}"
 
+class HotelImage(models.Model):
+    hotel = models.ForeignKey(Hotel, on_delete=models.CASCADE, related_name='images')
+    image = models.ImageField(upload_to='hotel_images/')
+
+    def __str__(self):
+        return f"Фото для {self.hotel.name}"
 
 class Booking(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)

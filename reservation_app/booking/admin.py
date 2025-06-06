@@ -1,20 +1,25 @@
 from django.contrib import admin
-from .models import Hotel, Room, Booking, RoomImage, CustomUser
+from .models import Hotel, Room, Booking, RoomImage, CustomUser, HotelImage
 
 class RoomImageInline(admin.TabularInline):
     model = RoomImage
     extra = 1
 
+class HotelImageInline(admin.TabularInline):
+    model = HotelImage
+    extra = 1
 
 # admin.site.register(Hotel)
 # admin.site.register(Room, RoomAdmin)
 # admin.site.register(Booking)
 
 admin.site.register(RoomImage)
+admin.site.register(HotelImage)
 @admin.register(Hotel)
 class HotelAdmin(admin.ModelAdmin):
     list_display = ('name', 'city')
     search_fields = ('name', 'city')
+    inlines = [HotelImageInline]
 
 @admin.register(Room)
 class RoomAdmin(admin.ModelAdmin):

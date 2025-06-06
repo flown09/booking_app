@@ -70,30 +70,78 @@ def hotel_list(request):
 def room_list(request):
     check_in = request.GET.get('check_in')
     check_out = request.GET.get('check_out')
+    city = request.GET.get('city')
+    hotel_name = request.GET.get('hotel')
+    guests = request.GET.get('guests')
 
-    all_rooms = Room.objects.filter(is_available=True)
-    rooms = []
+    rooms = Room.objects.filter(is_available=True)
 
+    # Фильтрация по городу (через связь с Hotel)
+    if city:
+        rooms = rooms.filter(hotel__city__icontains=city)
+
+    # Фильтрация по названию отеля
+    if hotel_name:
+        rooms = rooms.filter(hotel__name__icontains=hotel_name)
+
+    # Фильтрация по вместимости
+    if guests:
+        try:
+            guests_int = int(guests)
+            rooms = rooms.filter(capacity__gte=guests_int)
+        except ValueError:
+            pass  # игнорируем некорректный ввод
+
+    # Фильтрация по датам (проверка на пересекающиеся бронирования)
     if check_in and check_out:
         try:
             check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
             check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
 
-            for room in all_rooms:
-                if room.is_available_for_dates(check_in_date, check_out_date):
-                    rooms.append(room)
-        except ValueError:
-            # Неверный формат даты — можно обработать или проигнорировать
-            pass
-    else:
-        # Если даты не указаны, показываем все доступные
-        rooms = list(all_rooms)
+            # Исключаем комнаты с пересекающимися бронями
+            rooms = rooms.exclude(
+                booking__check_in__lt=check_out_date,
+                booking__check_out__gt=check_in_date
+            ).distinct()
 
-    return render(request, 'room_list.html', {
+        except ValueError:
+            pass  # некорректная дата — пропускаем фильтрацию
+
+    return render(request, 'room_list_zapas.html', {
         'rooms': rooms,
         'check_in': check_in,
         'check_out': check_out,
+        'city': city,
+        'hotel': hotel_name,
+        'guests': guests,
     })
+
+# def room_list(request):
+#     check_in = request.GET.get('check_in')
+#     check_out = request.GET.get('check_out')
+#
+#     all_rooms = Room.objects.filter(is_available=True)
+#     rooms = []
+#
+#     if check_in and check_out:
+#         try:
+#             check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
+#             check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
+#
+#             for room in all_rooms:
+#                 if room.is_available_for_dates(check_in_date, check_out_date):
+#                     rooms.append(room)
+#         except ValueError:
+#             # Неверный формат даты — можно обработать или проигнорировать
+#             pass
+#     else:
+#         rooms = list(all_rooms)
+#
+#     return render(request, 'room_list_zapas.html', {
+#         'rooms': rooms,
+#         'check_in': check_in,
+#         'check_out': check_out,
+#     })
 
 def room_detail(request, pk):
     room = get_object_or_404(Room, pk=pk)

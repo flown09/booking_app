@@ -13,12 +13,12 @@
     <div class="flex flex-wrap gap-6">
         <div class="flex-1 min-w-[180px]">
             <label for="city" class="block text-sm font-medium">Город</label>
-            <input type="text" id="city" name="city" value="{{ request.GET.city|default_if_none:'' }}" placeholder="Название города"
+            <input type="text" id="city" name="city" value="{{ request.GET.city }}" placeholder="Название города"
                    class="mt-1 border p-2 rounded w-full bg-white">
         </div>
         <div class="flex-1 min-w-[180px]">
             <label for="hotel" class="block text-sm font-medium">Отель</label>
-            <input type="text" id="hotel" name="hotel" value="{{ request.GET.hotel|default_if_none:'' }}" placeholder="Название отеля"
+            <input type="text" id="hotel" name="hotel" value="{{ request.GET.hotel }}" placeholder="Название отеля"
                    class="mt-1 border p-2 rounded w-full bg-white">
         </div>
         <div class="flex-1 min-w-[180px]">
@@ -28,13 +28,13 @@
         </div>
         <div class="flex-1 min-w-[180px]">
             <label for="check_in" class="block text-sm font-medium">Дата заезда</label>
-            <input type="date" id="check_in" name="check_in" value="{{ check_in|default:'' }}"
-                   class="mt-1 border p-2 rounded w-full bg-white">
+            <input type="date" id="check_in" name="check_in" value="{{ check_in }}"
+                   class="mt-1 border p-2 rounded w-full bg-white" required>
         </div>
         <div class="flex-1 min-w-[180px]">
             <label for="check_out" class="block text-sm font-medium">Дата выезда</label>
-            <input type="date" id="check_out" name="check_out" value="{{ check_out|default:'' }}"
-                   class="mt-1 border p-2 rounded w-full bg-white">
+            <input type="date" id="check_out" name="check_out" value="{{ check_out }}"
+                   class="mt-1 border p-2 rounded w-full bg-white" required>
         </div>
         <div class="flex items-end">
             <button type="submit"
@@ -45,9 +45,10 @@
     </div>
 </form>
 
+
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
     {% for room in rooms %}
-    <a href="{% url 'room_detail' room.pk %}" class="block bg-white rounded shadow hover:shadow-lg transition">
+    <a href="{% url 'room_detail' room.pk %}" class="block bg-white rounded shadow hover:shadow-lg">
         {% if room.images.first %}
             <img src="{{ room.images.first.image.url }}" class="w-full h-48 object-cover" alt="{{ room.name }}">
         {% else %}
@@ -60,7 +61,7 @@
         </div>
     </a>
     {% empty %}
-    <p class="text-gray-500 text-lg">Нет доступных номеров на выбранные параметры.</p>
+    <p class="text-gray-500 text-lg">Нет доступных номеров на выбранные даты.</p>
     {% endfor %}
 </div>
 {% endblock %}
