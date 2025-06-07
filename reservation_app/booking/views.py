@@ -2,17 +2,30 @@ from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404, redirect
-from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm
+from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm, ProfileUpdateForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
-from .models import Room, Hotel, Booking, EmailConfirmation
+from .models import Room, Hotel, Booking, EmailConfirmation, CustomUser
 from datetime import datetime, timedelta, date
 import random
 
 @login_required
 def profile_view(request):
-    confirmation = EmailConfirmation.objects.filter(user=request.user).first()
-    return render(request, 'profile.html', {'confirmation': confirmation})
+    user = request.user
+    confirmation = EmailConfirmation.objects.filter(user=user).first()
+
+    if request.method == 'POST':
+        form = ProfileUpdateForm(request.POST, instance=user)
+        if form.is_valid():
+            form.save()
+            return redirect('profile')
+    else:
+        form = ProfileUpdateForm(instance=user)
+
+    return render(request, 'profile.html', {
+        'form': form,
+        'confirmation': confirmation
+    })
 
 @login_required
 def send_confirmation_code(request):
@@ -39,17 +52,6 @@ def verify_confirmation_code(request):
         confirmation.save()
     return redirect('profile')
 
-# @login_required
-# def profile_view(request):
-#     profile = request.user
-#     if request.method == 'POST':
-#         form = CustomUserRegistrationForm(request.POST, request.FILES, instance=profile)
-#         if form.is_valid():
-#             form.save()
-#             return redirect('profile')
-#     else:
-#         form = CustomUserRegistrationForm(instance=profile)
-#     return render(request, 'profile.html', {'form': form})
 
 def home(request):
     return render(request, 'home.html')
@@ -61,29 +63,14 @@ def my_bookings(request):
 
 def register_view(request):
     if request.method == 'POST':
-        form = CustomUserRegistrationForm(request.POST)
+        form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save()
+            user = form.save(commit=False)
+            user.save()
             login(request, user)
-
-            code = random.randint(100000, 999999)
-            EmailConfirmation.objects.update_or_create(
-                user=user,
-                defaults={'code': code, 'confirmed': False}
-            )
-
-            # отправляем email
-            send_mail(
-                'Подтверждение почты',
-                f'Ваш код подтверждения: {code}',
-                settings.DEFAULT_FROM_EMAIL,
-                [user.email],
-                fail_silently=False,
-            )
-            return redirect('room_list')
+            return redirect('profile')
     else:
-        form = CustomUserRegistrationForm()
-
+        form = RegisterForm()
     return render(request, 'auth/register.html', {'form': form})
 
 
@@ -91,17 +78,21 @@ def login_view(request):
     if request.user.is_authenticated:
         return redirect('room_list')
 
-    if request.method == 'POST':
-        form = LoginForm(data=request.POST)
-        if form.is_valid():
-            user = form.get_user()
-            login(request, user)
-            messages.success(request, 'Вы вошли в систему!')
-            return redirect('room_list')
-        else:
-            messages.error(request, 'Неверный логин или пароль.')
-    else:
-        form = LoginForm()
+    form = LoginForm(request.POST or None)
+    if request.method == 'POST' and form.is_valid():
+        email = form.cleaned_data['email']
+        password = form.cleaned_data['password']
+
+        try:
+            user_obj = CustomUser.objects.get(email=email)
+            user = authenticate(request, username=user_obj.username, password=password)
+            if user is not None:
+                login(request, user)
+                return redirect('room_list')
+        except CustomUser.DoesNotExist:
+            pass
+
+        form.add_error(None, 'Неверный email или пароль')
 
     return render(request, 'auth/login.html', {'form': form})
 
@@ -122,11 +113,11 @@ def room_list(request):
     hotel_name = request.GET.get('hotel')
     guests = request.GET.get('guests')
 
-    today = date.today()
-    tomorrow = today + timedelta(days=1)
-
-    check_in = request.GET.get("check_in", today.strftime('%Y-%m-%d'))
-    check_out = request.GET.get("check_out", tomorrow.strftime('%Y-%m-%d'))
+    # today = date.today()
+    # tomorrow = today + timedelta(days=1)
+    #
+    # check_in = request.GET.get("check_in", today.strftime('%Y-%m-%d'))
+    # check_out = request.GET.get("check_out", tomorrow.strftime('%Y-%m-%d'))
 
     rooms = Room.objects.filter(is_available=True)
 

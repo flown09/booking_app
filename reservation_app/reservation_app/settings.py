@@ -49,7 +49,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'Vlas442004@gmail.com'
-EMAIL_HOST_PASSWORD = 'utyb ngik tmzt qdkh'
+EMAIL_HOST_PASSWORD = 'acxc xfxl hgok corl'
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 AUTH_USER_MODEL = 'booking.CustomUser'

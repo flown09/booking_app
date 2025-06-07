@@ -5,6 +5,22 @@ from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
 from django.contrib.auth.models import User
 from .models import CustomUser
 
+from django import forms
+from .models import CustomUser
+
+class ProfileUpdateForm(forms.ModelForm):
+    class Meta:
+        model = CustomUser
+        fields = ['username', 'last_name', 'first_name', 'email', 'phone_number']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        for field in self.fields.values():
+            field.widget.attrs.update({
+                'class': 'w-full border rounded p-2'
+            })
+
+
 class CustomUserRegistrationForm(UserCreationForm):
     email = forms.EmailField(required=True)
     phone_number = forms.CharField(required=False)
@@ -26,9 +42,27 @@ class RegisterForm(UserCreationForm):
     email = forms.EmailField(required=True, label='Email')
 
     class Meta:
-        model = User
-        fields = ['username', 'email', 'password1', 'password2']
+        model = CustomUser
+        fields = ['email', 'last_name', 'first_name']
+        widgets = {
+            'email': forms.EmailInput(attrs={'class': 'w-full border rounded p-2'}),
+        }
 
-class LoginForm(AuthenticationForm):
-    username = forms.CharField(label='Имя пользователя')
-    password = forms.CharField(widget=forms.PasswordInput, label='Пароль')
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['last_name'].widget.attrs.update({'class': 'w-full border rounded p-2'})
+        self.fields['first_name'].widget.attrs.update({'class': 'w-full border rounded p-2'})
+        self.fields['password1'].widget.attrs.update({'class': 'w-full border rounded p-2'})
+        self.fields['password2'].widget.attrs.update({'class': 'w-full border rounded p-2'})
+
+class LoginForm(forms.Form):
+    email = forms.EmailField(label='Email')
+    password = forms.CharField(label='Пароль', widget=forms.PasswordInput)
+    class Meta:
+        model = CustomUser
+        fields = ['email', 'password']
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['email'].widget.attrs.update({'class': 'w-full border rounded p-2'})
+        self.fields['password'].widget.attrs.update({'class': 'w-full border rounded p-2'})

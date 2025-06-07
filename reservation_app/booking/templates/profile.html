@@ -4,24 +4,67 @@
 
 {% block content %}
 <div class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
-    <h1 class="text-3xl font-bold mb-4">Профиль пользователя</h1>
+    <h1 class="text-3xl font-bold mb-6">Профиль пользователя</h1>
 
-    <p class="mb-2"><strong>Логин:</strong> {{ user.username }}</p>
-    <p class="mb-2"><strong>Email:</strong> {{ user.email }}</p>
+    <!-- Форма обновления профиля -->
+    <form method="post" action="{% url 'profile' %}" class="space-y-4">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
 
-    {% if confirmation and confirmation.confirmed %}
-        <p class="text-green-600 font-semibold">Почта подтверждена ✅</p>
-    {% else %}
-        <form action="{% url 'send_confirmation_code' %}" method="post" class="mb-4">
+
+
+        <div>
+            <label class="block font-medium text-gray-700 mb-1">Фамилия:</label>
+            {{ form.last_name }}
+        </div>
+
+        <div>
+            <label class="block font-medium text-gray-700 mb-1">Имя:</label>
+            {{ form.first_name }}
+        </div>
+
+        <div>
+            <label class="block font-medium text-gray-700 mb-1">Телефон:</label>
+            {{ form.phone_number }}
+        </div>
+
+
+
+        <button type="submit"
+                class="mt-4 bg-blue-700 text-white font-semibold px-6 py-2 rounded hover:bg-blue-800">
+            Сохранить изменения
+        </button>
+    </form>
+
+    <!-- Email и подтверждение -->
+    <div class="mt-6">
+        <label class="block font-medium text-gray-700 mb-1">Email:</label>
+        <input type="text" name="email" value="{{ form.email.value }}"
+                   class="w-full border rounded p-2">
+
+        {% if confirmation and confirmation.confirmed %}
+            <p class="text-green-600 font-semibold">✅ Подтверждено</p>
+        {% else %}
+            <form action="{% url 'send_confirmation_code' %}" method="post" class="inline-block mr-4">
+                {% csrf_token %}
+                <button type="submit"
+                        class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 mt-4 rounded">
+                    Отправить код
+                </button>
+            </form>
+        {% endif %}
+
+        {% if confirmation and not confirmation.confirmed %}
+        <form action="{% url 'verify_confirmation_code' %}" method="post" class="mt-2 flex gap-3">
             {% csrf_token %}
-            <button class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded" type="submit">Отправить код подтверждения</button>
+            <input type="text" name="code" placeholder="Введите код"
+                   class="border p-2 rounded w-48">
+            <button type="submit"
+                    class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">
+                Подтвердить
+            </button>
         </form>
-
-        <form action="{% url 'verify_confirmation_code' %}" method="post" class="flex gap-3">
-            {% csrf_token %}
-            <input type="text" name="code" placeholder="Введите код" class="border p-2 rounded w-48">
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded">Подтвердить</button>
-        </form>
-    {% endif %}
+        {% endif %}
+    </div>
 </div>
 {% endblock %}

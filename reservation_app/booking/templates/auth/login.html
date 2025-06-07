@@ -2,11 +2,25 @@
 {% block title %}Вход{% endblock %}
 
 {% block content %}
-<h2 class="text-2xl font-bold mb-4">Вход</h2>
-<form method="post" class="space-y-4">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">Войти</button>
-</form>
-<p class="mt-4">Нет аккаунта? <a href="{% url 'register' %}" class="text-blue-600">Зарегистрируйтесь</a></p>
+<div class="max-w-md mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
+    <h2 class="text-2xl font-bold mb-6">Вход</h2>
+    <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div>
+            <label for="{{ form.email.id_for_label }}" class="block text-gray-700 mb-1 font-medium">Email:</label>
+            <input type="email" name="email" id="{{ form.email.id_for_label }}" value="{{ form.email.value|default_if_none:'' }}"
+                   class="w-full border rounded p-2" required>
+        </div>
+
+        <div>
+            <label for="{{ form.password.id_for_label }}" class="block text-gray-700 mb-1 font-medium">Пароль:</label>
+            <input type="password" name="password" id="{{ form.password.id_for_label }}"
+                   class="w-full border rounded p-2" required>
+        </div>
+
+        <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 w-full">Войти</button>
+    </form>
+
+</div>
 {% endblock %}
