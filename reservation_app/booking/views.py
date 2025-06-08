@@ -29,9 +29,9 @@ def update_email(request):
             return JsonResponse({'success': False, 'errors': 'Email уже используется'})
 
         user = request.user
-        user.email = email
-        user.username = email.split('@')[0]
-        user.is_active = False
+        # user.email = email
+        # user.username = email.split('@')[0]
+        # user.is_active = False
         user.save()
 
         # Генерация и отправка кода
@@ -48,6 +48,9 @@ def update_email(request):
             [email],
         )
 
+        request.session['pending_email'] = email
+        request.session['email_code'] = code
+
         return JsonResponse({'success': True})
 
 
@@ -59,8 +62,11 @@ def profile_view(request):
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, instance=user)
         if form.is_valid():
-            print(form.cleaned_data)
-            form.save()
+            # Исключаем email — он меняется ТОЛЬКО через подтверждение
+            form.cleaned_data.pop('email', None)
+            for field in ['first_name', 'last_name', 'phone_number']:
+                setattr(user, field, form.cleaned_data.get(field))
+            user.save()
             return redirect('profile')
     else:
         form = ProfileUpdateForm(instance=user)
@@ -124,18 +130,50 @@ def confirm_code_view(request):
     if request.method == 'POST':
         data = json.loads(request.body)
         code = data.get('code')
-        confirmation = EmailConfirmation.objects.filter(code=code, confirmed=False).first()
+        session_code = request.session.get('email_code')
+        pending_email = request.session.get('pending_email')
 
-        if confirmation:
-            confirmation.confirmed = True
-            confirmation.save()
-            user = confirmation.user
-            user.is_active = True
-            user.save()
-            login(request, user)
-            return JsonResponse({'confirmed': True})
-        else:
-            return JsonResponse({'confirmed': False})
+        if code == session_code and pending_email:
+            confirmation = EmailConfirmation.objects.filter(user=request.user).first()
+            if confirmation:
+                confirmation.confirmed = True
+                confirmation.save()
+
+                # Теперь можно изменить email
+                user = request.user
+                user.email = pending_email
+                user.username = pending_email.split('@')[0]
+                user.is_active = True
+                user.save()
+
+                # Удаляем временные данные
+                del request.session['email_code']
+                del request.session['pending_email']
+
+                return JsonResponse({'confirmed': True})
+
+        return JsonResponse({'confirmed': False})
+# def confirm_code_view(request):
+#     if request.method == 'POST':
+#         data = json.loads(request.body)
+#         code = data.get('code')
+#         confirmation = EmailConfirmation.objects.filter(code=code, confirmed=False).first()
+#         email = request.session.get('pending_email')
+#
+#         if confirmation:
+#             confirmation.confirmed = True
+#             confirmation.save()
+#
+#             user = confirmation.user
+#             request.user.email = email
+#             request.user.username = email.split('@')[0]
+#             user.is_active = True
+#             request.user.save()
+#             confirmation.user.save()
+#             login(request, user)
+#             return JsonResponse({'confirmed': True})
+#         else:
+#             return JsonResponse({'confirmed': False})
 
 def login_view(request):
     if request.user.is_authenticated:
