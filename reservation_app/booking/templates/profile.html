@@ -3,11 +3,11 @@
 {% block title %}Профиль{% endblock %}
 
 {% block content %}
-<div id="profile-form" class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
+<div class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
     <h1 class="text-3xl font-bold mb-6">Профиль пользователя</h1>
 
     <!-- Форма обновления профиля -->
-    <form method="post" class="space-y-4">
+    <form id="profile-form" method="post" class="space-y-4">
         {% csrf_token %}
         {{ form.non_field_errors }}
 
@@ -78,6 +78,7 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
     const formData = new FormData(form);
     const newEmail = emailInput.value;
 
+    // Если email изменился — отправляем запрос на подтверждение
     if (newEmail !== originalEmail) {
         fetch("{% url 'update_email' %}", {
             method: 'POST',
@@ -96,16 +97,16 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
                 alert("Ошибка при отправке email: " + data.errors.email);
             }
         });
-    }
-    else {
+    } else {
+        // Если email не менялся — сохраняем сразу
         fetch("{% url 'profile' %}", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                },
-                body: formData
-            })
-            .then(res => res.redirected ? window.location.href = res.url : location.reload());
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+            },
+            body: formData
+        })
+        .then(res => res.redirected ? window.location.href = res.url : location.reload());
     }
 });
 
