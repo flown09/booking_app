@@ -3,7 +3,7 @@
 {% block title %}Профиль{% endblock %}
 
 {% block content %}
-<div class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
+<div id="profile-container" class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
     <h1 class="text-3xl font-bold mb-6">Профиль пользователя</h1>
 
     <!-- Форма обновления профиля -->
@@ -92,6 +92,7 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
         .then(data => {
             if (data.success) {
                 form.classList.add('hidden');
+                document.getElementById('profile-container').classList.add('hidden');
                 document.getElementById('code-container').classList.remove('hidden');
             } else {
                 alert("Ошибка при отправке email: " + data.errors.email);
