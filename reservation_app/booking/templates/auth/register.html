@@ -2,9 +2,9 @@
 {% block title %}Регистрация{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
+<div id="registration-container" class="max-w-md mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
     <h2 class="text-2xl font-bold mb-6">Регистрация</h2>
-    <form method="post" class="space-y-4">
+    <form id="registration-form" method="post" class="space-y-4">
         {% csrf_token %}
 
         <div>
@@ -44,4 +44,77 @@
         <a href="{% url 'login' %}" class="text-blue-600 hover:underline">Войти</a>
     </p>
 </div>
+
+<!-- Поле для кода -->
+<div class="max-w-md mx-auto bg-white shadow-md rounded-xl p-6 mt-8 hidden" id="code-container">
+    <h2 class="text-2xl font-bold mb-4">Введите код подтверждения</h2>
+    <p class="mb-4 text-sm text-gray-600">Код отправлен на вашу почту</p>
+    <form id="confirm-form" class="space-y-4">
+        <input type="text" name="code" placeholder="Код" class="w-full border rounded p-2" required>
+        <button type="submit" class="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 w-full">Подтвердить</button>
+    </form>
+</div>
+
+<script>
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie) {
+        const cookies = document.cookie.split(';');
+        for (let cookie of cookies) {
+            cookie = cookie.trim();
+            if (cookie.startsWith(name + '=')) {
+                cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+const csrftoken = getCookie('csrftoken');
+
+document.getElementById('registration-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const form = e.target;
+    const formData = new FormData(form);
+
+    fetch("{% url 'register' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+        },
+        body: formData
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.success) {
+            document.getElementById('registration-container').classList.add('hidden');
+            document.getElementById('code-container').classList.remove('hidden');
+        } else {
+            alert("Ошибка: " + JSON.stringify(data.errors));
+        }
+    });
+});
+
+document.getElementById('confirm-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    const code = e.target.code.value;
+
+    fetch("{% url 'confirm_code' %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': csrftoken,
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ code })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.confirmed) {
+            window.location.href = "{% url 'room_list' %}";
+        } else {
+            alert("Неверный код");
+        }
+    });
+});
+</script>
 {% endblock %}

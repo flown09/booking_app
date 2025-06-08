@@ -11,7 +11,7 @@ from .models import CustomUser
 class ProfileUpdateForm(forms.ModelForm):
     class Meta:
         model = CustomUser
-        fields = ['username', 'last_name', 'first_name', 'email', 'phone_number']
+        fields = ['last_name', 'first_name', 'email', 'phone_number']
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

@@ -1,7 +1,12 @@
+import json
+
+from django.http import JsonResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404, redirect
+from django.views.decorators.csrf import csrf_exempt
+
 from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm, ProfileUpdateForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
@@ -9,23 +14,58 @@ from .models import Room, Hotel, Booking, EmailConfirmation, CustomUser
 from datetime import datetime, timedelta, date
 import random
 
+@csrf_exempt
+@login_required
+def update_email(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        email = data.get('email')
+
+        if not email:
+            return JsonResponse({'success': False, 'errors': 'Email не указан'})
+
+        # Проверка уникальности email
+        if CustomUser.objects.exclude(id=request.user.id).filter(email=email).exists():
+            return JsonResponse({'success': False, 'errors': 'Email уже используется'})
+
+        user = request.user
+        user.email = email
+        user.username = email.split('@')[0]
+        user.is_active = False
+        user.save()
+
+        # Генерация и отправка кода
+        code = str(random.randint(100000, 999999))
+        EmailConfirmation.objects.update_or_create(
+            user=user,
+            defaults={'code': code, 'confirmed': False}
+        )
+
+        send_mail(
+            'Подтверждение email',
+            f'Ваш код подтверждения: {code}',
+            'noreply@example.com',
+            [email],
+        )
+
+        return JsonResponse({'success': True})
+
+
 @login_required
 def profile_view(request):
     user = request.user
-    confirmation = EmailConfirmation.objects.filter(user=user).first()
+    #confirmation = EmailConfirmation.objects.filter(user=user).first()
 
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, instance=user)
         if form.is_valid():
+            print(form.cleaned_data)
             form.save()
             return redirect('profile')
     else:
         form = ProfileUpdateForm(instance=user)
 
-    return render(request, 'profile.html', {
-        'form': form,
-        'confirmation': confirmation
-    })
+    return render(request, 'profile.html', {'form': form})
 
 @login_required
 def send_confirmation_code(request):
@@ -44,19 +84,6 @@ def send_confirmation_code(request):
     return redirect('profile')
 
 @login_required
-def verify_confirmation_code(request):
-    input_code = request.POST.get('code')
-    confirmation = EmailConfirmation.objects.filter(user=request.user).first()
-    if confirmation and confirmation.code == input_code:
-        confirmation.confirmed = True
-        confirmation.save()
-    return redirect('profile')
-
-
-def home(request):
-    return render(request, 'home.html')
-
-@login_required
 def my_bookings(request):
     bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'my_bookings.html', {'bookings': bookings})
@@ -66,13 +93,49 @@ def register_view(request):
         form = RegisterForm(request.POST)
         if form.is_valid():
             user = form.save(commit=False)
+            if '@' in user.email:
+                user.username = user.email.split('@')[0]
+            else:
+                user.username = user.email
+            user.is_active = False  # временно отключаем пользователя
             user.save()
-            login(request, user)
-            return redirect('profile')
+
+            # Генерация кода
+            code = str(random.randint(100000, 999999))
+            EmailConfirmation.objects.create(user=user, code=code)
+
+            # Отправка письма
+            send_mail(
+                'Код подтверждения',
+                f'Ваш код подтверждения: {code}',
+                'noreply@example.com',
+                [user.email],
+            )
+
+            return JsonResponse({'success': True})
+        else:
+            return JsonResponse({'success': False, 'errors': form.errors})
     else:
         form = RegisterForm()
     return render(request, 'auth/register.html', {'form': form})
 
+@csrf_exempt
+def confirm_code_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        code = data.get('code')
+        confirmation = EmailConfirmation.objects.filter(code=code, confirmed=False).first()
+
+        if confirmation:
+            confirmation.confirmed = True
+            confirmation.save()
+            user = confirmation.user
+            user.is_active = True
+            user.save()
+            login(request, user)
+            return JsonResponse({'confirmed': True})
+        else:
+            return JsonResponse({'confirmed': False})
 
 def login_view(request):
     if request.user.is_authenticated:
@@ -99,7 +162,6 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    messages.info(request, 'Вы вышли из аккаунта.')
     return redirect('login')
 
 def hotel_list(request):
