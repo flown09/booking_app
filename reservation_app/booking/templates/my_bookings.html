@@ -11,7 +11,7 @@
                 <div class="bg-white shadow p-4 rounded-lg border border-gray-200">
                     <h2 class="text-xl font-semibold mb-1">{{ booking.room.name }}</h2>
                     <p class="text-gray-600">Отель: {{ booking.room.hotel.name }}</p>
-                    <p class="text-gray-500 mb-1">Адрес: {{ booking.room.hotel.address }}</p>
+                    <p class="text-gray-500 mb-1">Адрес: {{ booking.room.hotel.city }}, {{ booking.room.hotel.address }}</p>
                     <p class="text-gray-500">С {{ booking.check_in }} по {{ booking.check_out }}</p>
                     <p class="text-sm text-gray-400 mb-4">Статус: {{ booking.get_status_display }}</p>
 

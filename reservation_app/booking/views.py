@@ -88,22 +88,6 @@ def profile_view(request):
     return render(request, 'profile.html', {'form': form})
 
 @login_required
-def send_confirmation_code(request):
-    code = str(random.randint(100000, 999999))
-    EmailConfirmation.objects.update_or_create(
-        user=request.user,
-        defaults={'code': code, 'confirmed': False}
-    )
-    send_mail(
-        'Код подтверждения почты',
-        f'Ваш код подтверждения: {code}',
-        settings.DEFAULT_FROM_EMAIL,
-        [request.user.email],
-        fail_silently=False
-    )
-    return redirect('profile')
-
-@login_required
 def my_bookings(request):
     bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'my_bookings.html', {'bookings': bookings})
@@ -239,7 +223,7 @@ def room_list(request):
     hotel_name = request.GET.get('hotel')
     guests = request.GET.get('guests')
 
-    # today = date.today()
+    today = date.today()
     # tomorrow = today + timedelta(days=1)
     #
     # check_in = request.GET.get("check_in", today.strftime('%Y-%m-%d'))
@@ -265,10 +249,13 @@ def room_list(request):
             check_in_date = datetime.strptime(check_in, '%Y-%m-%d').date()
             check_out_date = datetime.strptime(check_out, '%Y-%m-%d').date()
 
-            rooms = rooms.exclude(
-                booking__check_in__lt=check_out_date,
-                booking__check_out__gt=check_in_date
-            ).distinct()
+            if check_in_date >= check_out_date or check_in_date < today or check_out_date - check_in_date > timedelta(days=30):
+                rooms = Room.objects.none()
+            else:
+                rooms = rooms.exclude(
+                    booking__check_in__lt=check_out_date,
+                    booking__check_out__gt=check_in_date
+                ).distinct()
 
         except ValueError:
             pass
