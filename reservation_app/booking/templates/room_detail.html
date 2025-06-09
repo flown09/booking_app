@@ -63,7 +63,7 @@
 
 
         <p class="text-blue-700 font-medium mt-2">
-            Бронирование с <strong>{{ check_in }}</strong> по <strong>{{ check_out }}</strong>
+            Бронирование с {{ check_in|date:"j E Y" }} по {{ check_out|date:"j E Y" }}
         </p>
 
 

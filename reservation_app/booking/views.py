@@ -50,10 +50,10 @@ def update_email(request):
 
         # Генерация и отправка кода
         code = str(random.randint(100000, 999999))
-        EmailConfirmation.objects.update_or_create(
-            user=user,
-            defaults={'code': code, 'confirmed': False}
-        )
+        # EmailConfirmation.objects.update_or_create(
+        #     user=user,
+        #     defaults={'code': code, 'confirmed': False}
+        # )
 
         send_mail(
             'Подтверждение email',
@@ -109,12 +109,11 @@ def confirm_code_for_register_view(request):
                 username=user_data['email'].split('@')[0],
                 is_active=True,
             )
-            user.set_password(user_data['password'])  # обязательно, иначе пароль сохранится в открытом виде
+            user.set_password(user_data['password'])
             user.save()
 
             login(request, user)
 
-            # Очистить сессию
             del request.session['pending_user_data']
             del request.session['email_code']
 
@@ -130,7 +129,7 @@ def register_view(request):
                 'email': form.cleaned_data['email'],
                 'first_name': form.cleaned_data['first_name'],
                 'last_name': form.cleaned_data['last_name'],
-                'password': form.cleaned_data['password1'],  # важно: сохраняется пока в открытом виде
+                'password': form.cleaned_data['password1'],
             }
             request.session['pending_user_data'] = user_data
 
@@ -164,23 +163,21 @@ def confirm_code_view(request):
         pending_email = request.session.get('pending_email')
 
         if code == session_code and pending_email:
-            confirmation = EmailConfirmation.objects.filter(user=request.user).first()
-            if confirmation:
-                confirmation.confirmed = True
-                confirmation.save()
+            # confirmation = EmailConfirmation.objects.filter(user=request.user).first()
+            # if confirmation:
+            #     confirmation.confirmed = True
+            #     confirmation.save()
 
-                # Теперь можно изменить email
-                user = request.user
-                user.email = pending_email
-                user.username = pending_email.split('@')[0]
-                user.is_active = True
-                user.save()
+            user = request.user
+            user.email = pending_email
+            user.username = pending_email.split('@')[0]
+            user.is_active = True
+            user.save()
 
-                # Удаляем временные данные
-                del request.session['email_code']
-                del request.session['pending_email']
+            del request.session['email_code']
+            del request.session['pending_email']
 
-                return JsonResponse({'confirmed': True})
+            return JsonResponse({'confirmed': True})
 
         return JsonResponse({'confirmed': False})
 
@@ -275,17 +272,15 @@ def room_detail(request, pk):
     check_in = request.GET.get('check_in')
     check_out = request.GET.get('check_out')
 
-    check_in_display = None
-    check_out_display = None
+    check_in_date = None
+    check_out_date = None
     try:
-        if check_in:
-            check_in_display = datetime.strptime(check_in, "%Y-%m-%d").strftime("%d %B %Y")
-        if check_out:
-            check_out_display = datetime.strptime(check_out, "%Y-%m-%d").strftime("%d %B %Y")
+        if check_in and check_out:
+            check_in_date = datetime.strptime(check_in, "%Y-%m-%d").date()
+            check_out_date = datetime.strptime(check_out, "%Y-%m-%d").date()
     except ValueError:
         pass
-    check_in = check_in_display
-    check_out = check_out_display
+
     if request.method == 'POST':
         if request.user.is_authenticated:
             form = BookingForm(request.POST)
@@ -309,8 +304,8 @@ def room_detail(request, pk):
     return render(request, 'room_detail.html', {
         'room': room,
         'form': form,
-        'check_in': check_in,
-        'check_out': check_out,
+        'check_in': check_in_date,
+        'check_out': check_out_date,
     })
 
 def hotel_detail(request, pk):
