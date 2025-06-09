@@ -1,18 +1,32 @@
 import json
-
 from django.http import JsonResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
-
+from django.views.decorators.http import require_POST
 from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm, ProfileUpdateForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from .models import Room, Hotel, Booking, EmailConfirmation, CustomUser
 from datetime import datetime, timedelta, date
 import random
+
+
+@require_POST
+@login_required
+def cancel_booking_view(request, booking_id):
+    try:
+        booking = Booking.objects.get(id=booking_id, user=request.user)
+        if booking.status != 'cancelled':
+            booking.status = 'cancelled'
+            booking.save()
+            return JsonResponse({'cancelled': True})
+        else:
+            return JsonResponse({'cancelled': False, 'error': 'already cancelled'})
+    except Booking.DoesNotExist:
+        return JsonResponse({'cancelled': False, 'error': 'not found'})
 
 @csrf_exempt
 @login_required
