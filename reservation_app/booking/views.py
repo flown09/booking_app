@@ -94,29 +94,61 @@ def my_bookings(request):
     bookings = Booking.objects.filter(user=request.user).order_by('-created_at')
     return render(request, 'my_bookings.html', {'bookings': bookings})
 
+@csrf_exempt
+def confirm_code_for_register_view(request):
+    if request.method == 'POST':
+        data = json.loads(request.body)
+        input_code = data.get('code')
+        session_code = request.session.get('email_code')
+        user_data = request.session.get('pending_user_data')
+
+        print(f"input_code: {input_code}, session_code: {session_code}")
+        if str(input_code) == str(session_code) and user_data:
+            user = CustomUser(
+                email=user_data['email'],
+                first_name=user_data['first_name'],
+                last_name=user_data['last_name'],
+                username=user_data['email'].split('@')[0],
+                is_active=True,
+            )
+            user.set_password(user_data['password'])  # обязательно, иначе пароль сохранится в открытом виде
+            user.save()
+
+            login(request, user)
+
+            # Очистить сессию
+            del request.session['pending_user_data']
+            del request.session['email_code']
+
+            return JsonResponse({'confirmed': True})
+        else:
+            return JsonResponse({'confirmed': False})
+
 def register_view(request):
     if request.method == 'POST':
         form = RegisterForm(request.POST)
         if form.is_valid():
-            user = form.save(commit=False)
-            if '@' in user.email:
-                user.username = user.email.split('@')[0]
-            else:
-                user.username = user.email
-            user.is_active = False  # временно отключаем пользователя
-            user.save()
+            user_data = {
+                'email': form.cleaned_data['email'],
+                'first_name': form.cleaned_data['first_name'],
+                'last_name': form.cleaned_data['last_name'],
+                'password': form.cleaned_data['password1'],  # важно: сохраняется пока в открытом виде
+            }
+            request.session['pending_user_data'] = user_data
 
             # Генерация кода
             code = str(random.randint(100000, 999999))
-            EmailConfirmation.objects.create(user=user, code=code)
+            #EmailConfirmation.objects.create(user=user, code=code)
 
             # Отправка письма
             send_mail(
                 'Код подтверждения',
                 f'Ваш код подтверждения: {code}',
                 'noreply@example.com',
-                [user.email],
+                [user_data['email']],
             )
+
+            request.session['email_code'] = code
 
             return JsonResponse({'success': True})
         else:
@@ -153,27 +185,7 @@ def confirm_code_view(request):
                 return JsonResponse({'confirmed': True})
 
         return JsonResponse({'confirmed': False})
-# def confirm_code_view(request):
-#     if request.method == 'POST':
-#         data = json.loads(request.body)
-#         code = data.get('code')
-#         confirmation = EmailConfirmation.objects.filter(code=code, confirmed=False).first()
-#         email = request.session.get('pending_email')
-#
-#         if confirmation:
-#             confirmation.confirmed = True
-#             confirmation.save()
-#
-#             user = confirmation.user
-#             request.user.email = email
-#             request.user.username = email.split('@')[0]
-#             user.is_active = True
-#             request.user.save()
-#             confirmation.user.save()
-#             login(request, user)
-#             return JsonResponse({'confirmed': True})
-#         else:
-#             return JsonResponse({'confirmed': False})
+
 
 def login_view(request):
     if request.user.is_authenticated:
