@@ -6,10 +6,10 @@ from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm, ProfileUpdateForm
+from .forms import BookingForm, RegisterForm, LoginForm, ProfileUpdateForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
-from .models import Room, Hotel, Booking, EmailConfirmation, CustomUser
+from .models import Room, Hotel, Booking, CustomUser
 from datetime import datetime, timedelta, date
 import random
 
@@ -38,22 +38,13 @@ def update_email(request):
         if not email:
             return JsonResponse({'success': False, 'errors': 'Email не указан'})
 
-        # Проверка уникальности email
         if CustomUser.objects.exclude(id=request.user.id).filter(email=email).exists():
             return JsonResponse({'success': False, 'errors': 'Email уже используется'})
 
         user = request.user
-        # user.email = email
-        # user.username = email.split('@')[0]
-        # user.is_active = False
         user.save()
 
-        # Генерация и отправка кода
         code = str(random.randint(100000, 999999))
-        # EmailConfirmation.objects.update_or_create(
-        #     user=user,
-        #     defaults={'code': code, 'confirmed': False}
-        # )
 
         send_mail(
             'Подтверждение email',
@@ -71,12 +62,10 @@ def update_email(request):
 @login_required
 def profile_view(request):
     user = request.user
-    #confirmation = EmailConfirmation.objects.filter(user=user).first()
 
     if request.method == 'POST':
         form = ProfileUpdateForm(request.POST, instance=user)
         if form.is_valid():
-            # Исключаем email — он меняется ТОЛЬКО через подтверждение
             form.cleaned_data.pop('email', None)
             for field in ['first_name', 'last_name', 'phone_number']:
                 setattr(user, field, form.cleaned_data.get(field))
@@ -133,11 +122,8 @@ def register_view(request):
             }
             request.session['pending_user_data'] = user_data
 
-            # Генерация кода
             code = str(random.randint(100000, 999999))
-            #EmailConfirmation.objects.create(user=user, code=code)
 
-            # Отправка письма
             send_mail(
                 'Код подтверждения',
                 f'Ваш код подтверждения: {code}',
@@ -163,11 +149,6 @@ def confirm_code_view(request):
         pending_email = request.session.get('pending_email')
 
         if code == session_code and pending_email:
-            # confirmation = EmailConfirmation.objects.filter(user=request.user).first()
-            # if confirmation:
-            #     confirmation.confirmed = True
-            #     confirmation.save()
-
             user = request.user
             user.email = pending_email
             user.username = pending_email.split('@')[0]
@@ -221,10 +202,6 @@ def room_list(request):
     guests = request.GET.get('guests')
 
     today = date.today()
-    # tomorrow = today + timedelta(days=1)
-    #
-    # check_in = request.GET.get("check_in", today.strftime('%Y-%m-%d'))
-    # check_out = request.GET.get("check_out", tomorrow.strftime('%Y-%m-%d'))
 
     rooms = Room.objects.filter(is_available=True)
 

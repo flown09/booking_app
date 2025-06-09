@@ -9,15 +9,6 @@ class CustomUser(AbstractUser):
     def __str__(self):
         return self.username
 
-class EmailConfirmation(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    code = models.CharField(max_length=6)
-    confirmed = models.BooleanField(default=False)
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.email} - {'Подтверждён' if self.confirmed else 'Ожидает'}"
-
 class Hotel(models.Model):
     name = models.CharField(max_length=200)
     address = models.TextField()
