@@ -9,7 +9,7 @@ from django.views.decorators.http import require_POST
 from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm, ProfileUpdateForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
-from .models import Room, Hotel, Booking, EmailConfirmation, CustomUser
+from .models import Room, Hotel, Booking, CustomUser
 from datetime import datetime, timedelta, date
 import random
 
@@ -22,6 +22,18 @@ def cancel_booking_view(request, booking_id):
         if booking.status != 'cancelled':
             booking.status = 'cancelled'
             booking.save()
+
+            subject = 'Подтверждение бронирования'
+
+            message = (
+                f'Здравствуйте, вы отменили бронирование:\n'
+                f'Отель: {booking.room.hotel.name}\n'
+                f'Номер: {booking.room.name}\n'
+            )
+            recipient = [request.user.email]
+
+            send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient)
+
             return JsonResponse({'cancelled': True})
         else:
             return JsonResponse({'cancelled': False, 'error': 'already cancelled'})
@@ -50,10 +62,10 @@ def update_email(request):
 
         # Генерация и отправка кода
         code = str(random.randint(100000, 999999))
-        EmailConfirmation.objects.update_or_create(
-            user=user,
-            defaults={'code': code, 'confirmed': False}
-        )
+        # EmailConfirmation.objects.update_or_create(
+        #     user=user,
+        #     defaults={'code': code, 'confirmed': False}
+        # )
 
         send_mail(
             'Подтверждение email',
@@ -164,23 +176,16 @@ def confirm_code_view(request):
         pending_email = request.session.get('pending_email')
 
         if code == session_code and pending_email:
-            confirmation = EmailConfirmation.objects.filter(user=request.user).first()
-            if confirmation:
-                confirmation.confirmed = True
-                confirmation.save()
+            user = request.user
+            user.email = pending_email
+            user.username = pending_email.split('@')[0]
+            user.is_active = True
+            user.save()
 
-                # Теперь можно изменить email
-                user = request.user
-                user.email = pending_email
-                user.username = pending_email.split('@')[0]
-                user.is_active = True
-                user.save()
+            del request.session['email_code']
+            del request.session['pending_email']
 
-                # Удаляем временные данные
-                del request.session['email_code']
-                del request.session['pending_email']
-
-                return JsonResponse({'confirmed': True})
+            return JsonResponse({'confirmed': True})
 
         return JsonResponse({'confirmed': False})
 
@@ -295,6 +300,22 @@ def room_detail(request, pk):
                 booking.user = request.user
                 booking.status = 'pending'
                 booking.save()
+                subject = 'Подтверждение бронирования'
+
+                message = (
+                    f'Здравствуйте, {request.user.first_name or request.user.username}!\n\n'
+                    f'Вы успешно отправили заявку на бронирование номера:\n'
+                    f'Отель: {room.hotel.name}\n'
+                    f'Номер: {room.name}\n'
+                    f'Период: с {check_in} по {check_out}\n'
+                    f'Адрес: {room.hotel.address}\n'
+                    'Ожидайте подтверждения от администрации.\n\n'
+                    'Спасибо, что выбрали наш сервис!'
+                )
+                recipient = [request.user.email]
+
+                send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, recipient)
+
                 messages.success(request, 'Бронирование успешно отправлено! Ожидайте подтверждения.')
                 return redirect('room_detail', pk=room.pk)
         else:
