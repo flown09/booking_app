@@ -1,4 +1,5 @@
 from django.contrib import admin
+from django.contrib.auth.admin import UserAdmin
 from .models import Hotel, Room, Booking, RoomImage, CustomUser, HotelImage
 
 class RoomImageInline(admin.TabularInline):
@@ -8,10 +9,6 @@ class RoomImageInline(admin.TabularInline):
 class HotelImageInline(admin.TabularInline):
     model = HotelImage
     extra = 1
-
-# admin.site.register(Hotel)
-# admin.site.register(Room, RoomAdmin)
-# admin.site.register(Booking)
 
 admin.site.register(RoomImage)
 admin.site.register(HotelImage)
@@ -45,8 +42,6 @@ class BookingAdmin(admin.ModelAdmin):
         updated = queryset.update(status='cancelled')
         self.message_user(request, f"{updated} бронирований отменено.")
 
-# Пользователи (если кастомная модель)
-from django.contrib.auth.admin import UserAdmin
 @admin.register(CustomUser)
 class CustomUserAdmin(UserAdmin):
     model = CustomUser

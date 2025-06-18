@@ -29,7 +29,7 @@ class Room(models.Model):
     bedroom = models.TextField(default='Односпальная кровать')
     bathroom = models.TextField(default='Ванная комната')
     internet = models.BooleanField(default=True)
-    electronics = models.TextField(default='Холодильник, телевизор')
+    electronics = models.TextField(default='Телевизор')
     square = models.PositiveIntegerField()
 
     def __str__(self):

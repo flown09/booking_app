@@ -89,7 +89,7 @@ def confirm_code_for_register_view(request):
         session_code = request.session.get('email_code')
         user_data = request.session.get('pending_user_data')
 
-        print(f"input_code: {input_code}, session_code: {session_code}")
+        #print(f"input_code: {input_code}, session_code: {session_code}")
         if str(input_code) == str(session_code) and user_data:
             user = CustomUser(
                 email=user_data['email'],
@@ -181,7 +181,7 @@ def login_view(request):
         except CustomUser.DoesNotExist:
             pass
 
-        form.add_error(None, 'Неверный email или пароль')
+        form.add_error(None, 'Неверный email или пароль!')
 
     return render(request, 'auth/login.html', {'form': form})
 
@@ -216,7 +216,7 @@ def room_list(request):
             guests_int = int(guests)
             rooms = rooms.filter(capacity__gte=guests_int)
         except ValueError:
-            pass
+            rooms = Room.objects.none()
 
     if check_in and check_out:
         try:
@@ -232,7 +232,7 @@ def room_list(request):
                 ).distinct()
 
         except ValueError:
-            pass
+            rooms = Room.objects.none()
 
     return render(request, 'room_list.html', {
         'rooms': rooms,
@@ -256,7 +256,7 @@ def room_detail(request, pk):
             check_in_date = datetime.strptime(check_in, "%Y-%m-%d").date()
             check_out_date = datetime.strptime(check_out, "%Y-%m-%d").date()
     except ValueError:
-        pass
+        messages.error(request, "Неверный формат даты.")
 
     if request.method == 'POST':
         if request.user.is_authenticated:
