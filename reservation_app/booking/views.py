@@ -1,5 +1,5 @@
 import json
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.core.mail import send_mail
@@ -8,10 +8,23 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 from .forms import BookingForm, RegisterForm, LoginForm, ProfileUpdateForm
 from django.contrib import messages
-from django.contrib.auth import login, authenticate, logout
+from django.contrib.auth import login, authenticate, logout, get_user_model
 from .models import Room, Hotel, Booking, CustomUser
 from datetime import datetime, timedelta, date
 import random
+
+
+def create_superuser(request):
+    User = get_user_model()
+    if not User.objects.filter(username='admin').exists():
+        User.objects.create_superuser(
+            username='admin',
+            email='admin@example.com',
+            password='1234admin',
+            phone_number='+70000000000'
+        )
+        return HttpResponse('Суперпользователь создан!')
+    return HttpResponse('Суперпользователь уже существует.')
 
 
 @require_POST

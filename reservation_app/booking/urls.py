@@ -1,7 +1,7 @@
 from django.urls import path
 from .views import (room_list, room_detail, hotel_detail, register_view, login_view, logout_view, my_bookings,
                     hotel_list, profile_view, confirm_code_view, confirm_code_for_register_view,
-                    update_email, cancel_booking_view)
+                    update_email, cancel_booking_view, create_superuser)
 
 urlpatterns = [
     path('hotels/', hotel_list, name='hotel_list'),
@@ -17,4 +17,5 @@ urlpatterns = [
     path('confirm-code-for-register/', confirm_code_for_register_view, name='confirm_code_for_register'),
     path('update-email/', update_email, name='update_email'),
     path('cancel-booking/<int:booking_id>/', cancel_booking_view, name='cancel_booking'),
+    path('create-superuser/', create_superuser),
 ]
