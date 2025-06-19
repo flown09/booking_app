@@ -240,6 +240,7 @@ def room_list(request):
                 rooms = Room.objects.none()
             else:
                 rooms = rooms.exclude(
+                    booking__status__in=['pending', 'confirmed'],
                     booking__check_in__lt=check_out_date,
                     booking__check_out__gt=check_in_date
                 ).distinct()
