@@ -12,7 +12,7 @@
                     <h2 class="text-xl font-semibold mb-1">{{ booking.room.name }}</h2>
                     <p class="text-gray-600">Отель: {{ booking.room.hotel.name }}</p>
                     <p class="text-gray-500 mb-1">Адрес: {{ booking.room.hotel.city }}, {{ booking.room.hotel.address }}</p>
-                    <p class="text-gray-500">С {{ booking.check_in }} по {{ booking.check_out }}</p>
+                    <p class="text-gray-500">С {{ booking.check_in|date:"d.m.Y" }} по {{ booking.check_out|date:"d.m.Y" }}</p>
                     <p class="text-sm text-gray-400 mb-4">Статус: {{ booking.get_status_display }}</p>
 
                     {% if booking.status != 'cancelled' %}
