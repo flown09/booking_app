@@ -6,7 +6,7 @@ from django.core.mail import send_mail
 from django.shortcuts import render, get_object_or_404, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
-from .forms import BookingForm, RegisterForm, LoginForm, CustomUserRegistrationForm, ProfileUpdateForm
+from .forms import BookingForm, RegisterForm, LoginForm, ProfileUpdateForm
 from django.contrib import messages
 from django.contrib.auth import login, authenticate, logout
 from .models import Room, Hotel, Booking, CustomUser

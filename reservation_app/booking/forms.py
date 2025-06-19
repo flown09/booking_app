@@ -1,9 +1,7 @@
-from django import forms
 from .models import Booking
 from django.forms import DateInput
-from django.contrib.auth.forms import UserCreationForm, AuthenticationForm
-from django.contrib.auth.models import User
-from .models import CustomUser
+from django.contrib.auth.forms import UserCreationForm
+
 
 from django import forms
 from .models import CustomUser
