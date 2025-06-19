@@ -291,7 +291,7 @@ def room_detail(request, pk):
                     f'Вы успешно отправили заявку на бронирование номера:\n'
                     f'Отель: {room.hotel.name}\n'
                     f'Номер: {room.name}\n'
-                    f'Период: с {booking.check_in} по {booking.check_out}\n'
+                    f'Период: с {booking.check_in.strftime("%d.%m.%Y")} по {booking.check_out.strftime("%d.%m.%Y")}\n'
                     f'Адрес: {room.hotel.address}\n'
                     'Ожидайте подтверждения от администрации.\n\n'
                     'Спасибо, что выбрали наш сервис!'
