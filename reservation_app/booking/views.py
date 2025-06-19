@@ -24,12 +24,13 @@ def cancel_booking_view(request, booking_id):
             booking.save()
 
             subject = 'Отмена бронирования'
-
+            check_in_formatted = booking.check_in.strftime("%d.%m.%Y")
+            check_out_formatted = booking.check_out.strftime("%d.%m.%Y")
             message = (
                 f'Здравствуйте, вы отменили бронирование:\n'
                 f'Отель: {booking.room.hotel.name}\n'
                 f'Номер: {booking.room.name}\n'
-                f'Период: с {booking.check_in} по {booking.check_out}\n'
+                f'Период: с {check_in_formatted} по {check_out_formatted}\n'
             )
             recipient = [request.user.email]
 
