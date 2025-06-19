@@ -228,7 +228,7 @@ def room_list(request):
             guests_int = int(guests)
             rooms = rooms.filter(capacity__gte=guests_int)
         except ValueError:
-            pass
+            rooms = Room.objects.none()
 
     if check_in and check_out:
         try:
@@ -244,7 +244,7 @@ def room_list(request):
                 ).distinct()
 
         except ValueError:
-            pass
+            rooms = Room.objects.none()
 
     return render(request, 'room_list.html', {
         'rooms': rooms,
@@ -269,7 +269,7 @@ def room_detail(request, pk):
         if check_out:
             check_out_display = datetime.strptime(check_out, "%Y-%m-%d").strftime("%d %B %Y")
     except ValueError:
-        pass
+        messages.error(request, "Неверный формат даты.")
     check_in = check_in_display
     check_out = check_out_display
     if request.method == 'POST':
