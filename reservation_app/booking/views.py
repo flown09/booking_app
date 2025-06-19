@@ -23,7 +23,7 @@ def cancel_booking_view(request, booking_id):
             booking.status = 'cancelled'
             booking.save()
 
-            subject = 'Подтверждение бронирования'
+            subject = 'Отмена бронирования'
 
             message = (
                 f'Здравствуйте, вы отменили бронирование:\n'
