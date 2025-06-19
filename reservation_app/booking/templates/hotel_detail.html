@@ -5,7 +5,6 @@
 {% block content %}
 <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-md p-6 mt-4">
     {% if hotel.images.all %}
-    <!-- Галерея отеля -->
     <div class="relative group mb-6">
         <div id="hotel-slider" class="overflow-hidden rounded-lg shadow-md relative">
             <div id="hotel-slide-track" class="flex transition-transform duration-500">
@@ -16,7 +15,6 @@
             </div>
         </div>
 
-        <!-- Стрелки -->
         <button onclick="prevHotelSlide()" class="hidden group-hover:flex absolute top-1/2 left-2 -translate-y-1/2 bg-white bg-opacity-70 hover:bg-opacity-100 text-gray-800 p-2 rounded-full shadow">
             ‹
         </button>
@@ -28,7 +26,6 @@
     <p class="text-gray-500 mb-6">Фотографии отеля пока не загружены.</p>
     {% endif %}
 
-    <!-- Информация -->
     <h1 class="text-3xl font-bold mb-2">{{ hotel.name }}</h1>
     <p class="text-gray-600 mb-1"><strong>Город:</strong> {{ hotel.city }}</p>
     <p class="text-gray-600 mb-1"><strong>Адрес:</strong> {{ hotel.address }}</p>
@@ -37,7 +34,6 @@
     <p class="mt-4 text-gray-800">{{ hotel.description }}</p>
 </div>
 
-<!-- Номера отеля -->
 <div class="max-w-6xl mx-auto bg-white rounded-xl shadow-md p-6 mt-6">
     <h2 class="text-2xl font-semibold mb-4">Номера в отеле</h2>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -57,7 +53,6 @@
     </div>
 </div>
 
-<!-- Слайдер JS -->
 <script>
     let currentHotelSlide = 0;
     const hotelSlideTrack = document.getElementById("hotel-slide-track");

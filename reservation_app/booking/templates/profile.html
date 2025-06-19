@@ -6,31 +6,26 @@
 <div id="profile-container" class="max-w-3xl mx-auto bg-white shadow-md rounded-xl p-6 mt-8">
     <h1 class="text-3xl font-bold mb-6">Профиль пользователя</h1>
 
-    <!-- Форма обновления профиля -->
     <form id="profile-form" method="post" class="space-y-4">
         {% csrf_token %}
         {{ form.non_field_errors }}
 
 
-        <!-- Email -->
         <div>
             <label for="id_email" class="block font-medium text-gray-700 mb-1">Email:</label>
             {{ form.email }}
         </div>
 
-        <!-- Фамилия -->
         <div>
             <label for="id_last_name" class="block font-medium text-gray-700 mb-1">Фамилия:</label>
             {{ form.last_name }}
         </div>
 
-        <!-- Имя -->
         <div>
             <label for="id_first_name" class="block font-medium text-gray-700 mb-1">Имя:</label>
             {{ form.first_name }}
         </div>
 
-        <!-- Телефон -->
         <div>
             <label for="id_phone_number" class="block font-medium text-gray-700 mb-1">Телефон:</label>
             {{ form.phone_number }}
@@ -43,7 +38,6 @@
     </form>
 </div>
 
-<!-- Поле для кода -->
 <div class="max-w-md mx-auto bg-white shadow-md rounded-xl p-6 mt-8 hidden" id="code-container">
     <h2 class="text-2xl font-bold mb-4">Введите код подтверждения</h2>
     <p class="mb-4 text-sm text-gray-600">Код отправлен на вашу почту</p>
@@ -78,7 +72,6 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
     const formData = new FormData(form);
     const newEmail = emailInput.value;
 
-    // Если email изменился — отправляем запрос на подтверждение
     if (newEmail !== originalEmail) {
         fetch("{% url 'update_email' %}", {
             method: 'POST',
@@ -111,7 +104,6 @@ document.getElementById('profile-form').addEventListener('submit', function(e) {
     }
 });
 
-// Подтверждение кода
 document.getElementById('confirm-form').addEventListener('submit', function(e) {
     e.preventDefault();
     const code = e.target.code.value;
