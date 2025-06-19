@@ -29,6 +29,7 @@ def cancel_booking_view(request, booking_id):
                 f'Здравствуйте, вы отменили бронирование:\n'
                 f'Отель: {booking.room.hotel.name}\n'
                 f'Номер: {booking.room.name}\n'
+                f'Период: с {booking.check_in} по {booking.check_out}\n'
             )
             recipient = [request.user.email]
 
@@ -288,7 +289,7 @@ def room_detail(request, pk):
                     f'Вы успешно отправили заявку на бронирование номера:\n'
                     f'Отель: {room.hotel.name}\n'
                     f'Номер: {room.name}\n'
-                    f'Период: с {check_in} по {check_out}\n'
+                    f'Период: с {booking.check_in} по {booking.check_out}\n'
                     f'Адрес: {room.hotel.address}\n'
                     'Ожидайте подтверждения от администрации.\n\n'
                     'Спасибо, что выбрали наш сервис!'
