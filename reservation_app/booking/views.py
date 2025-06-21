@@ -274,7 +274,7 @@ def room_detail(request, pk):
             check_in_right_data = datetime.strptime(check_in, "%Y-%m-%d").strftime("%d.%m.%Y")
         if check_out:
             check_out_display = datetime.strptime(check_out, "%Y-%m-%d").strftime("%d %B %Y")
-            check_out_right_data = datetime.strptime(check_in, "%Y-%m-%d").strftime("%d.%m.%Y")
+            check_out_right_data = datetime.strptime(check_out, "%Y-%m-%d").strftime("%d.%m.%Y")
     except ValueError:
         messages.error(request, "Неверный формат даты.")
 
