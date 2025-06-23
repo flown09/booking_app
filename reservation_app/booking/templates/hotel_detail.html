@@ -10,7 +10,7 @@
             <div id="hotel-slide-track" class="flex transition-transform duration-500">
                 {% for img in hotel.images.all %}
                 <img src="{{ img.image.url }}" alt="Фото {{ hotel.name }}"
-                     class="w-full flex-shrink-0 object-cover h-[32rem] rounded-lg bg-blue-50">
+                     class="w-full flex-shrink-0 object-contain h-[36rem] rounded-lg bg-blue-50">
                 {% endfor %}
             </div>
         </div>
